@@ -9,18 +9,44 @@
   <a:largeIconPath href="${framework}/icons/letters24.png"/>
   <a:accelerator>M1 M3 L</a:accelerator>
   <a:operations>
-    <a:operation id="ro.sync.ecss.extensions.commons.operations.OpenInSystemAppOperation">
+    <a:operation id="ro.sync.ecss.extensions.commons.operations.JSOperation">
       <a:arguments>
-        <a:argument name="resourcePath">concat('https://maelkolb.github.io/humboldt-hand-lookup/#q=',
-  encode-for-uri(concat('&quot;', normalize-space('${selection}'), '&quot;')),
-  '&amp;case=1',
-  string-join(
-    for $date in (//*:correspAction[@type = 'sent']/*:date, //*:profileDesc/*:creation/*:date)[1],
-        $from in substring(($date/@when, $date/@notBefore, $date/@from, $date/@notAfter, $date/@to)[1], 1, 4),
-        $to in substring(($date/@when, $date/@notAfter, $date/@to, $date/@notBefore, $date/@from)[1], 1, 4)
-    return if (number($from) = number($from) and number($to) = number($to))
-      then concat('&amp;y=', number($from) - 5, '-', number($to) + 5) else '',
-    ''))</a:argument>
+        <a:argument name="script"><![CDATA[
+var LOOKUP = "https://maelkolb.github.io/humboldt-hand-lookup/";
+var YEARS = "string-join(for $date in (//*:correspAction[@type = 'sent']/*:date, //*:profileDesc/*:creation/*:date)[1]," +
+  " $from in substring(($date/@when, $date/@notBefore, $date/@from, $date/@notAfter, $date/@to)[1], 1, 4)," +
+  " $to in substring(($date/@when, $date/@notAfter, $date/@to, $date/@notBefore, $date/@from)[1], 1, 4)" +
+  " return if (number($from) = number($from) and number($to) = number($to))" +
+  " then concat(number($from) - 5, '-', number($to) + 5) else '', '')";
+
+function selection() {
+  var text = authorAccess.getEditorAccess().getSelectedText();
+  return text == null ? "" : String(text).replace(/\s+/g, " ").replace(/^ | $/g, "");
+}
+
+function years() {
+  try {
+    var found = authorAccess.getDocumentController().evaluateXPath(YEARS, false, false, false);
+    return found != null && found.length ? String(found[0]) : "";
+  } catch (e) {
+    return "";
+  }
+}
+
+function open(url) {
+  Packages.java.awt.Desktop.getDesktop().browse(new Packages.java.net.URI(url));
+}
+
+function doOperation() {
+  var text = selection();
+  if (!text) {
+    authorAccess.getWorkspaceAccess().showInformationMessage("Select a few letters first.");
+    return;
+  }
+  var range = years();
+  open(LOOKUP + "#q=" + encodeURIComponent("\"" + text + "\"") + "&case=1" + (range ? "&y=" + range : ""));
+}
+]]></a:argument>
       </a:arguments>
     </a:operation>
   </a:operations>

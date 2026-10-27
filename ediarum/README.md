@@ -14,12 +14,13 @@ The date comes from the sent `correspAction` of a letter or the `creation` date 
 ## Files
 
 - `humboldt-hand/humboldt-hand.exf`: a framework extension script. It takes `ediarum.BASE.edit` as base and adds the
-  two actions to its toolbar and context menu. It also claims every TEI document, because the public EHD files carry
-  no `telota:doctype`.
-- `humboldt-hand/humboldt-hand_externalAuthorActions/`: the actions, one XML file each, using oXygen's
-  `OpenInSystemAppOperation`.
-  - The URL is built in XPath with `encode-for-uri`, so umlauts, spaces and quotes survive.
-  - The lookup's address is the first string in each file: `https://maelkolb.github.io/humboldt-hand-lookup/`.
+  two actions to a toolbar row of their own and to the context menu. It also claims every TEI document, because the
+  public EHD files carry no `telota:doctype`.
+- `humboldt-hand/humboldt-hand_externalAuthorActions/`: the actions, one XML file each. Each is a short script run by
+  oXygen's `JSOperation`.
+  - The script reads the selection and the document's date, builds the link with `encodeURIComponent`, and hands it
+    to the default browser.
+  - The lookup's address is the first line of each script: `https://maelkolb.github.io/humboldt-hand-lookup/`.
 - `humboldt-hand/icons/`: toolbar icons.
 
 ## Install and try (oXygen XML Author 28)
@@ -45,7 +46,9 @@ The date comes from the sent `correspAction` of a letter or the `creation` date 
 - **Moving the lookup:** if it moves (e.g. to a BBAW server), change the one URL at the start of each action file.
 
 ## Limits
-- A selection containing a straight apostrophe (`'`) ends the XPath string early. The action then fails, with
-  oXygen's XPath error. Curly quotation marks (’) are fine.
-- Tested: the URLs, evaluated with oXygen's own Saxon on EHD letters and journals. The click inside oXygen is the
-  manual step above.
+- The lookup opens in the browser, not inside oXygen. A panel beside the document would need a Java plugin with an
+  embedded browser.
+- oXygen reads the action files at startup; restart it after changing them.
+- Tested in oXygen XML Author 28.1 with ediarum.BASE.edit 3.0.0 on EHD letters and journals: toolbar buttons and
+  context menu. The scripts were also run against a stand-in editor for umlauts, spaces, apostrophes and an empty
+  selection.

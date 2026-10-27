@@ -11,8 +11,7 @@
   </associationRules>
   <author>
     <toolbars>
-      <toolbar>
-        <separator/>
+      <toolbar name="Humboldt's Hand">
         <addAction id="humboldt.hand.word"/>
         <addAction id="humboldt.hand.letters"/>
       </toolbar>
