@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<a:authorAction xmlns:a="http://www.oxygenxml.com/ns/author/external-action"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.oxygenxml.com/ns/author/external-action http://www.oxygenxml.com/ns/author/external-action/authorAction.xsd"
+  id="humboldt.hand.word">
+  <a:name>How Humboldt wrote it</a:name>
+  <a:description>Shows Humboldt's own instances of the selected word, from five years either side of this document's date.</a:description>
+  <a:smallIconPath href="${framework}/icons/hand16.png"/>
+  <a:largeIconPath href="${framework}/icons/hand24.png"/>
+  <a:accelerator>M1 M3 H</a:accelerator>
+  <a:operations>
+    <a:operation id="ro.sync.ecss.extensions.commons.operations.OpenInSystemAppOperation">
+      <a:arguments>
+        <a:argument name="resourcePath">concat('https://maelkolb.github.io/humboldt-hand-lookup/#q=',
+  encode-for-uri(normalize-space('${selection}')),
+  string-join(
+    for $date in (//*:correspAction[@type = 'sent']/*:date, //*:profileDesc/*:creation/*:date)[1],
+        $from in substring(($date/@when, $date/@notBefore, $date/@from, $date/@notAfter, $date/@to)[1], 1, 4),
+        $to in substring(($date/@when, $date/@notAfter, $date/@to, $date/@notBefore, $date/@from)[1], 1, 4)
+    return if (number($from) = number($from) and number($to) = number($to))
+      then concat('&amp;y=', number($from) - 5, '-', number($to) + 5) else '',
+    ''))</a:argument>
+      </a:arguments>
+    </a:operation>
+  </a:operations>
+  <a:enabledInReadOnlyContext>true</a:enabledInReadOnlyContext>
+</a:authorAction>

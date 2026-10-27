@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ECEBE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17181B" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="/*IIIF_ORIGIN*/" crossorigin>
+<link rel="preconnect" href="/*IIIF_ORIGIN*/">
+<title>Humboldt’s hand</title>
+<style>
+/*FONTS*/
+/*CSS*/
+</style>
+</head>
+<body class="idle">
+<a class="skip" href="#results" data-t="skip"></a>
+<svg class="filters" aria-hidden="true" focusable="false">
+  <filter id="ink-script" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.3 -0.59 -0.11 0 1"/>
+    <feGaussianBlur stdDeviation="0.6" result="dark"/>
+    <feComponentTransfer in="dark" result="levels"><feFuncA type="linear" slope="5.2" intercept="-1.65"/></feComponentTransfer>
+    <feFlood flood-color="currentColor" result="colour"/>
+    <feComposite in="colour" in2="levels" operator="in"/>
+  </filter>
+  <filter id="ink-accent" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.3 -0.59 -0.11 0 1" result="dark"/>
+    <feComponentTransfer in="dark" result="levels"><feFuncA type="linear" slope="3.2" intercept="-1.15"/></feComponentTransfer>
+    <feFlood flood-color="currentColor" result="colour"/>
+    <feComposite in="colour" in2="levels" operator="in"/>
+  </filter>
+</svg>
+<header id="top">
+  <div class="bar">
+    <h1 class="title" data-t="title"></h1>
+    <div class="searchwrap">
+      <input id="q" name="q" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest" data-label="lookUp" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" lang="de" disabled>
+      <ul id="suggest" class="suggest" role="listbox" data-label="suggestions" lang="de" translate="no" hidden></ul>
+    </div>
+    <div class="controls">
+      <div class="switch" role="group" data-label="lookUpBy">
+        <button type="button" class="toggle" data-mode="word" aria-pressed="true" data-t="word"></button>
+        <button type="button" class="toggle" data-mode="letters" aria-pressed="false" data-t="letters"></button>
+      </div>
+      <button type="button" id="case" class="toggle case" aria-pressed="false" data-label="matchCase" hidden>Aa</button>
+      <div class="pinctl" hidden>
+        <span class="thumb" role="img" data-label="pinnedWord"></span>
+        <button type="button" id="unpin" class="icon" data-label="remove">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+        </button>
+      </div>
+    </div>
+    <button type="button" id="allyears" class="word" data-t="allYears" hidden></button>
+    <div class="timeline" id="timeline">
+      <div class="names" aria-hidden="true"></div>
+      <div class="plot">
+        <div class="bars" aria-hidden="true"></div>
+        <span class="run" aria-hidden="true"></span>
+        <span class="end lo" aria-hidden="true"></span>
+        <span class="end hi" aria-hidden="true"></span>
+        <div class="readout" aria-hidden="true"></div>
+        <div class="h lo" tabindex="0" role="slider" aria-orientation="horizontal" data-label="from"></div>
+        <div class="h hi" tabindex="0" role="slider" aria-orientation="horizontal" data-label="to"></div>
+      </div>
+      <div class="ticks" aria-hidden="true"></div>
+    </div>
+    <p class="corpus" id="corpus"></p>
+  </div>
+</header>
+<main id="results" tabindex="-1"><p class="status" id="status" role="status" data-t="loading"></p></main>
+<p class="vh" id="announce" role="status" aria-live="polite"></p>
+<dialog id="detail" aria-labelledby="dterm">
+  <div class="dbar">
+    <div class="steps">
+      <button type="button" class="icon prev" data-label="back"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5"/></svg></button>
+      <button type="button" class="icon next" data-label="next"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg></button>
+      <span class="pos"></span>
+    </div>
+    <h2 class="term" id="dterm" tabindex="-1" lang="de" translate="no"></h2>
+    <button type="button" class="word close" data-t="close"></button>
+  </div>
+  <div class="dbody"></div>
+</dialog>
+<script id="data" type="application/octet-stream">/*DATA*/</script>
+<script>
+/*JS*/
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<script xmlns="http://www.oxygenxml.com/ns/framework/extend"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.oxygenxml.com/ns/framework/extend http://www.oxygenxml.com/ns/framework/extend/frameworkExtensionScript.xsd"
+  base="ediarum.BASE.edit">
+  <name>ediarum.BASE.edit with Humboldt's Hand</name>
+  <description>ediarum.BASE.edit with two actions that open Humboldt's Hand for the selected word or letters.</description>
+  <priority>High</priority>
+  <associationRules inherit="all">
+    <addRule namespace="http://www.tei-c.org/ns/1.0" rootElementLocalName="TEI"/>
+  </associationRules>
+  <author>
+    <toolbars>
+      <toolbar>
+        <separator/>
+        <addAction id="humboldt.hand.word"/>
+        <addAction id="humboldt.hand.letters"/>
+      </toolbar>
+    </toolbars>
+    <contextualMenu>
+      <separator/>
+      <addAction id="humboldt.hand.word"/>
+      <addAction id="humboldt.hand.letters"/>
+    </contextualMenu>
+  </author>
+</script>
