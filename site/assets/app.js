@@ -90,7 +90,7 @@ const INK_CUT = 64;
 const WHITENED = 250;
 const STROKE = 0.8;
 
-const IMAGE_LIMIT = 6;
+const IMAGE_LIMIT = 16;
 const MAX_TERMS = 6;
 const JOIN_GAP = 9;
 const PIN_RULE = 15;
