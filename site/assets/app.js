@@ -20,7 +20,10 @@ const TEXT = {
   loading: "Loading…",
   loadingIndex: "Loading the index…",
   buildingIndex: "Building the word index…",
-  indexFailed: (reason) => `The index could not be read (${reason}). Reload the page; if it fails again, rebuild it with build.py.`,
+  indexFailed: (reason) =>
+    location.protocol === "file:"
+      ? "Opened from disk, the page cannot read data/index.json. Serve this folder over HTTP (see docs/DEPLOY.md)."
+      : `The index could not be read (${reason}). Reload the page.`,
   noHit: "Not in the edition.",
   noLetters: (term) => `No word contains ${term}.`,
   noneInYears: (range) => `None in ${range}.`,
@@ -84,6 +87,8 @@ const LETTER_SHARP = 0.12;
 const LETTER_SOFT = 0.3;
 const FAINT = 0.24;
 const INK_CUT = 64;
+const WHITENED = 250;
+const STROKE = 0.8;
 
 const IMAGE_LIMIT = 6;
 const MAX_TERMS = 6;
@@ -165,10 +170,15 @@ function currentSizes() {
 }
 
 async function loadData() {
-  const encoded = $("#data").textContent.trim();
-  const bytes = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
-  return JSON.parse(await new Response(stream).text());
+  const embedded = $("#data");
+  if (embedded) {
+    const bytes = Uint8Array.from(atob(embedded.textContent.trim()), (c) => c.charCodeAt(0));
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    return JSON.parse(await new Response(stream).text());
+  }
+  const response = await fetch("data/index.json");
+  if (!response.ok) throw new Error(`data/index.json ${response.status}`);
+  return response.json();
 }
 
 function buildGroups(sources, pages, lines) {
@@ -527,6 +537,9 @@ function inkAlpha(data, width, height, soft) {
   const span = Math.max(48, paper - dark);
   const light = paper - span * 0.2;
   const full = paper - span * 0.78;
+  const alpha = new Float32Array(count);
+  for (let k = 0; k < count; k++) alpha[k] = clamp((light - lum[k]) / (light - full), 0, 1);
+  if (paper >= WHITENED) removeStains(alpha, width, height);
   const featherX = soft ? Math.max(2, width * 0.05) : 1.5;
   const featherY = soft ? Math.max(2, height * 0.07) : 1.5;
   for (let y = 0; y < height; y++) {
@@ -534,14 +547,42 @@ function inkAlpha(data, width, height, soft) {
     for (let x = 0; x < width; x++) {
       const k = y * width + x;
       const edge = Math.min(edgeY, (x + 0.5) / featherX, (width - x - 0.5) / featherX);
-      const alpha = clamp((light - lum[k]) / (light - full), 0, 1);
       const p = k * 4;
       data[p] = 0;
       data[p + 1] = 0;
       data[p + 2] = 0;
-      data[p + 3] = Math.round(255 * alpha * edge);
+      data[p + 3] = Math.round(255 * alpha[k] * edge);
     }
   }
+}
+
+function removeStains(alpha, width, height) {
+  const radius = Math.max(3, Math.round(height * 0.07));
+  const grey = alpha.map((a) => (a > 0.12 && a < STROKE ? 1 : 0));
+  const cover = slide(grey, width, height, radius, "mean").map((c) => clamp((c - 0.42) / 0.2, 0, 1));
+  const stain = slide(cover, width, height, radius, "max");
+  for (let k = 0; k < alpha.length; k++) if (alpha[k] < STROKE) alpha[k] *= 1 - stain[k];
+}
+
+function slide(values, width, height, radius, how) {
+  const pass = (source, length, lines, step, stride) => {
+    const out = new Float32Array(source.length);
+    for (let line = 0; line < lines; line++) {
+      const start = line * stride;
+      for (let i = 0; i < length; i++) {
+        const lo = Math.max(0, i - radius);
+        const hi = Math.min(length - 1, i + radius);
+        let acc = 0;
+        for (let n = lo; n <= hi; n++) {
+          const v = source[start + n * step];
+          acc = how === "max" ? Math.max(acc, v) : acc + v;
+        }
+        out[start + i * step] = how === "max" ? acc : acc / (hi - lo + 1);
+      }
+    }
+    return out;
+  };
+  return pass(pass(values, width, height, 1, width), height, width, width, 1);
 }
 
 function shapeInk(data, width, height, shape) {
@@ -650,6 +691,7 @@ async function maskFrom(img, region, width, height, shape = null) {
   canvas.width = Math.max(1, Math.round(width ?? sw));
   canvas.height = Math.max(1, Math.round(height ?? sh));
   const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.imageSmoothingQuality = "high";
   context.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
   inkAlpha(pixels.data, canvas.width, canvas.height, !shape);
@@ -691,8 +733,10 @@ async function paintInk(node, url, region = null) {
     return plainInk(node, url, region);
   }
   try {
-    const scale = region ? Math.min(1, 240 / region[3]) : 1;
-    const mask = await maskFrom(img, region, region && region[2] * scale, region && region[3] * scale, node.shape);
+    const fit = region ? Math.min(1, 240 / region[3]) : ratio();
+    const width = region ? region[2] * fit : parseFloat(node.style.width) * fit;
+    const height = region ? region[3] * fit : parseFloat(node.style.height) * fit;
+    const mask = await maskFrom(img, region, width, height, node.shape);
     node.mask = mask;
     setMask(node, mask);
     return true;
@@ -840,7 +884,7 @@ function inkFrame(tile) {
     ink.style.top = `${part.top}px`;
     ink.style.width = `${part.width}px`;
     ink.style.height = `${part.height}px`;
-    ink.dataset.src = iiifRegion(part.page, part.rect, 0, Math.round(part.height * ratio()));
+    ink.dataset.src = iiifRegion(part.page, part.rect, 0, Math.min(part.rect.h, Math.round(part.height * ratio())));
     ink.shape = part.shape;
     inks.append(ink);
     left += part.width;
@@ -1344,7 +1388,13 @@ function setupSearch() {
       if (pinned) pinFromHash();
       else removePin();
     }
-    if (wanted !== $("#q").value.trim() || cased !== matchCase) {
+    const years = hashYears();
+    const moved = years[0] !== yearRange[0] || years[1] !== yearRange[1];
+    if (moved) {
+      yearRange = years;
+      paintTimeline();
+    }
+    if (moved || wanted !== $("#q").value.trim() || cased !== matchCase) {
       closeDetail(false);
       $("#q").value = wanted;
       matchCase = cased;
@@ -1361,11 +1411,8 @@ function setupTimeline() {
   const max = Math.max(...years);
   const span = max - min + 1;
   Object.assign(timeline, { min, max, span });
-  yearRange = [min, max];
   yearFull = [min, max];
-  const wanted = location.hash.match(/[#&]y=(\d+)-(\d+)/);
-  if (wanted) yearRange = [clamp(Number(wanted[1]), min, max), clamp(Number(wanted[2]), min, max)];
-  if (yearRange[0] > yearRange[1]) yearRange = [min, max];
+  yearRange = hashYears();
   const counts = new Array(span).fill(0);
   for (const year of corpus.lineYear) if (year >= min && year <= max) counts[year - min]++;
   timeline.counts = counts;
@@ -1463,6 +1510,13 @@ function paintTimeline() {
   $(".h.lo", root).setAttribute("aria-valuenow", String(from));
   $(".h.hi", root).setAttribute("aria-valuenow", String(to));
   $("#allyears").hidden = from === yearFull[0] && to === yearFull[1];
+}
+
+function hashYears() {
+  const wanted = location.hash.match(/[#&]y=(\d+)-(\d+)/);
+  if (!wanted) return [...yearFull];
+  const range = [clamp(Number(wanted[1]), ...yearFull), clamp(Number(wanted[2]), ...yearFull)];
+  return range[0] > range[1] ? [...yearFull] : range;
 }
 
 function setRange(from, to) {

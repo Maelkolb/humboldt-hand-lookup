@@ -5,13 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ECEBE6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#17181B" media="(prefers-color-scheme: dark)">
-<link rel="preconnect" href="/*IIIF_ORIGIN*/" crossorigin>
-<link rel="preconnect" href="/*IIIF_ORIGIN*/">
+<link rel="preconnect" href="https://digilib.bbaw.de" crossorigin>
+<link rel="preconnect" href="https://digilib.bbaw.de">
+<link rel="preload" href="data/index.json" as="fetch" crossorigin>
+<link rel="preload" href="assets/fonts/n-latin.woff2" as="font" type="font/woff2" crossorigin>
 <title>Humboldt’s hand</title>
-<style>
-/*FONTS*/
-/*CSS*/
-</style>
+<link rel="stylesheet" href="assets/style.css">
 </head>
 <body class="idle">
 <a class="skip" href="#results" data-t="skip"></a>
@@ -81,9 +80,6 @@
   </div>
   <div class="dbody"></div>
 </dialog>
-<script id="data" type="application/octet-stream">/*DATA*/</script>
-<script>
-/*JS*/
-</script>
+<script src="assets/app.js"></script>
 </body>
 </html>

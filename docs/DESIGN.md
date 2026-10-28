@@ -77,7 +77,7 @@
 - **The search field** has a hairline underline that turns `--pencil` on focus, and no box.
 - **Hover:** a `--pencil-wash` behind specimens and words. No shadows, no scale.
 
-## The lookup (`ui/`)
+## The lookup (`site/`)
 ```
 Humboldt's Hand  │ Wasser|Waller______________________________  Word  Letters  Aa
                  │ 1790 ▁▂▅▃▁   ▂▇▃      ▁       ▂▃▅▂▁▂▃▂▁▂▃▁   1858   (timeline, thin)
@@ -109,7 +109,7 @@ Letters   5 more │ ───────────────────�
   - the features: Word, Letters, Aa, guesses, pin from the link, year range, detail;
   - single file, works from `file://`.
 
-## The reading view (`viewer_ui/`)
+## The reading view (humboldt-htr `viewer_ui/`)
 ```
 Testdoc                    ← 52r →  (folio select)                 Confidence   Layout
 ──────────────────────────────────────────────────────────────────────────────────────
