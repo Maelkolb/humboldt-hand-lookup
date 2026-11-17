@@ -896,13 +896,14 @@ function spanEdges(line, i, j) {
 function drawEdges(svg, line, i, j, map, labels) {
   const a = line.a ?? 60;
   const d = line.d ?? 40;
-  const xh = Math.min(line.xh ?? a, 0.45 * a);
+  const core = Math.min(line.xh ?? 0.6 * a, 0.6 * a);
   const co = line.co ?? 0;
   const sl = line.sl ?? 0;
   const at = (x, yb, y) => map(x + sl * (yb - co - y), y);
   for (const edge of spanEdges(line, i, j)) {
     const yb = baselineAt(line.b, edge.x);
-    const [top, bottom] = edge.outer ? [yb - a, yb + d] : [yb - 0.85 * xh, yb + 0.1 * xh];
+    const yc = yb - co;
+    const [top, bottom] = edge.outer ? [yb - a, yb + d] : [yc - 0.6 * core, yc + 0.6 * core];
     const [x1, y1] = edge.word ? map(edge.x, top) : at(edge.x, yb, top);
     const [x2, y2] = edge.word ? map(edge.x, bottom) : at(edge.x, yb, bottom);
     svg.append(svgNode("line", { x1, y1, x2, y2, class: edge.outer ? "outer" : "inner" }));
