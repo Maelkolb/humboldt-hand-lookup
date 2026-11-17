@@ -18,9 +18,10 @@ have guesses.
 ## Use
 - **Word:** finds whole words and ignores spelling differences (case, long s, ß = ss, umlauts).
 - **Letters:** finds a letter sequence inside words, exactly as written. `Aa` keeps the case you typed.
-- **Letter edges:** draws littera's letter edges (short rules along the slant of the writing) and word edges (long
-  upright rules) on every crop. In the detail view the letters stand under their spans, in brown where littera was
-  unsure. The browser remembers the setting.
+- **Letter edges:** a click on a crop opens the detail view, which draws littera's letter edges (short rules along
+  the slant of the writing) and word edges (long upright rules) on the enlarged crop and on the scan, with the letters
+  under their spans, in brown where littera was unsure. The crops in the search results stay plain. The detail view's
+  "Letter edges" button switches the rules off; the browser remembers the setting.
 - **Guesses:** several guesses separated by `|` give one row each. The timeline keeps a period. A click on a crop
   shows the line, the edition's text, the colour scan and the page.
 

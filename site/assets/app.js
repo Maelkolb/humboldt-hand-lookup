@@ -920,8 +920,8 @@ function drawEdges(svg, line, i, j, map, labels) {
   }
 }
 
-function edgeLayer(tile, box, labelled) {
-  const svg = svgNode("svg", { class: labelled ? "edges" : "edges clip", width: tile.inkWidth, height: box.height, "aria-hidden": "true" });
+function edgeLayer(tile, box) {
+  const svg = svgNode("svg", { class: "edges", width: tile.inkWidth, height: box.height, "aria-hidden": "true" });
   const size = Math.max(11, Math.round(tile.height * 0.15));
   let left = 0;
   tile.parts.forEach((part, k) => {
@@ -932,7 +932,7 @@ function edgeLayer(tile, box, labelled) {
     const scale = part.width / part.rect.w;
     const offset = left;
     const map = (x, y) => [offset + (x - part.rect.x) * scale, part.top + (y - part.rect.y) * scale];
-    const labels = labelled ? { size, place: (mid, yb, at) => [at(mid, yb, yb)[0], box.height + size] } : null;
+    const labels = { size, place: (mid, yb, at) => [at(mid, yb, yb)[0], box.height + size] };
     drawEdges(svg, line, i, j, map, labels);
     left += part.width;
   });
@@ -986,7 +986,7 @@ function inkFrame(tile) {
     inks.append(ink);
     left += part.width;
   });
-  if (tile.inst) inks.append(edgeLayer(tile, box, tile.labelled));
+  if (tile.labelled) inks.append(edgeLayer(tile, box));
   frame.append(inks);
   tile.inks = inks;
   tile.frame = frame;
@@ -1474,7 +1474,6 @@ function setupSearch() {
   for (const button of document.querySelectorAll(".switch button")) {
     button.addEventListener("click", () => setMode(button.dataset.mode));
   }
-  $("#edges").addEventListener("click", () => setEdges(!showEdges));
   $("#case").addEventListener("click", () => {
     matchCase = !matchCase;
     runSearch();

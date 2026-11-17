@@ -861,7 +861,6 @@ main:focus { outline: none; }
 }
 
 .edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
-.edges.clip { overflow: hidden; }
 .edges line { stroke: var(--pencil); stroke-width: 1px; stroke-linecap: round; }
 .edges line.inner { opacity: 0.8; }
 .edges line.outer { stroke-width: 1.5px; }
