@@ -14,7 +14,7 @@ live at a domain's root or in any sub-folder.
 ## On a web server
 Copy `site/` to the server (Apache, nginx, eXist-db, GitHub Pages; anything that serves files).
 
-- **Compression.** The index is 15.5 MB as JSON and 5.3 MB compressed, so let the server compress JSON. nginx:
+- **Compression.** The index is 16.6 MB as JSON and 5.7 MB compressed, so let the server compress JSON. nginx:
   `gzip_types application/json;`. Apache: `AddOutputFilterByType DEFLATE application/json`. GitHub Pages does this
   by itself.
 - **Images.** The crops come from BBAW digilib (`iiif_base` in the index). The page reads their pixels, which digilib
@@ -28,7 +28,7 @@ Copy `site/` to the server (Apache, nginx, eXist-db, GitHub Pages; anything that
 Opening `site/index.html` straight from disk does not work, because browsers do not let a page read
 `data/index.json` from `file://`. For a single file that opens from disk (on a USB stick, or next to an export of
 the reading view), build `python tools/build.py single --out humboldt_hand_lookup.html`. That file has everything
-inside it: 7.4 MB.
+inside it: 7.9 MB.
 
 ## A new index
 The index is made by the humboldt-htr pipeline (`scripts/78_lookup_index.py`) from a release of the EHD TEI data.

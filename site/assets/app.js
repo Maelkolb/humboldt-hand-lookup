@@ -47,6 +47,8 @@ const TEXT = {
   more: (n) => `${n} more`,
   position: (i, n) => `${i} of ${n}`,
   summary: (n, sources) => `${n} in ${sources} ${sources === 1 ? "source" : "sources"}`,
+  edges: "Letter edges",
+  edgesNote: "Long rules: word edges. Short rules: letter edges, placed by littera. Brown letters were placed with low confidence.",
   corpus: (lines, words, journals, letters) => `${lines} lines and ${words} words from ${journals} journals and ${letters} letters`,
 };
 
@@ -863,6 +865,100 @@ function spokenText(inst) {
   return inst.join ? own + inst.join.line.t.slice(inst.join.ni, inst.join.nj) : own;
 }
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+const DOUBT = 3;
+
+function svgNode(tag, attributes) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+  return node;
+}
+
+function spanEdges(line, i, j) {
+  const { x, t } = line;
+  const edges = [];
+  let last = -1;
+  const gap = (k) => k < 0 || k >= t.length || /\s/.test(t[k]);
+  for (let k = i; k < j; k++) {
+    if (/\s/.test(t[k])) {
+      if (last >= 0) edges.push({ x: x[last + 1], outer: true, word: true });
+      last = -1;
+      continue;
+    }
+    if (!(x[k + 1] > x[k])) continue;
+    edges.push({ x: x[k], outer: last < 0, word: last < 0 && gap(k - 1) });
+    last = k;
+  }
+  if (last >= 0) edges.push({ x: x[last + 1], outer: true, word: gap(last + 1) });
+  return edges;
+}
+
+function drawEdges(svg, line, i, j, map, labels) {
+  const a = line.a ?? 60;
+  const d = line.d ?? 40;
+  const xh = Math.min(line.xh ?? a, 0.45 * a);
+  const co = line.co ?? 0;
+  const sl = line.sl ?? 0;
+  const at = (x, yb, y) => map(x + sl * (yb - co - y), y);
+  for (const edge of spanEdges(line, i, j)) {
+    const yb = baselineAt(line.b, edge.x);
+    const [top, bottom] = edge.outer ? [yb - a, yb + d] : [yb - 0.85 * xh, yb + 0.1 * xh];
+    const [x1, y1] = edge.word ? map(edge.x, top) : at(edge.x, yb, top);
+    const [x2, y2] = edge.word ? map(edge.x, bottom) : at(edge.x, yb, bottom);
+    svg.append(svgNode("line", { x1, y1, x2, y2, class: edge.outer ? "outer" : "inner" }));
+  }
+  if (!labels) return;
+  for (let k = i; k < j; k++) {
+    if (/\s/.test(line.t[k]) || !(line.x[k + 1] > line.x[k])) continue;
+    const mid = (line.x[k] + line.x[k + 1]) / 2;
+    const [lx, ly] = labels.place(mid, baselineAt(line.b, mid), at);
+    const label = svgNode("text", { x: lx, y: ly, "font-size": labels.size });
+    if (Number((line.q || "")[k] ?? 9) <= DOUBT) label.setAttribute("class", "doubt");
+    label.textContent = line.t[k];
+    svg.append(label);
+  }
+}
+
+function edgeLayer(tile, box, labelled) {
+  const svg = svgNode("svg", { class: labelled ? "edges" : "edges clip", width: tile.inkWidth, height: box.height, "aria-hidden": "true" });
+  const size = Math.max(11, Math.round(tile.height * 0.15));
+  let left = 0;
+  tile.parts.forEach((part, k) => {
+    if (k) left += JOIN_GAP;
+    const join = k ? tile.inst.join : null;
+    const line = join ? join.line : tile.inst.line;
+    const [i, j] = join ? [join.ni, join.nj] : [tile.inst.i, tile.inst.j];
+    const scale = part.width / part.rect.w;
+    const offset = left;
+    const map = (x, y) => [offset + (x - part.rect.x) * scale, part.top + (y - part.rect.y) * scale];
+    const labels = labelled ? { size, place: (mid, yb, at) => [at(mid, yb, yb)[0], box.height + size] } : null;
+    drawEdges(svg, line, i, j, map, labels);
+    left += part.width;
+  });
+  return svg;
+}
+
+let showEdges = readEdges();
+
+function readEdges() {
+  try {
+    return localStorage.getItem("hh-edges") !== "0";
+  } catch (error) {
+    return true;
+  }
+}
+
+function setEdges(on) {
+  showEdges = on;
+  document.body.classList.toggle("edges-on", on);
+  for (const button of document.querySelectorAll(".edges-toggle")) button.setAttribute("aria-pressed", String(on));
+  try {
+    localStorage.setItem("hh-edges", on ? "1" : "0");
+  } catch (error) {
+    // the setting just is not remembered
+  }
+}
+
 function inkFrame(tile) {
   const box = boxOf(tile.height);
   const frame = el("span", "box");
@@ -889,6 +985,7 @@ function inkFrame(tile) {
     inks.append(ink);
     left += part.width;
   });
+  if (tile.inst) inks.append(edgeLayer(tile, box, tile.labelled));
   frame.append(inks);
   tile.inks = inks;
   tile.frame = frame;
@@ -1376,6 +1473,7 @@ function setupSearch() {
   for (const button of document.querySelectorAll(".switch button")) {
     button.addEventListener("click", () => setMode(button.dataset.mode));
   }
+  $("#edges").addEventListener("click", () => setEdges(!showEdges));
   $("#case").addEventListener("click", () => {
     matchCase = !matchCase;
     runSearch();
@@ -1643,7 +1741,7 @@ function showDetail(view, index, origin = null) {
   side.append(sourceBlock(inst));
   const instRect = spanRect(line, page, i, j, 0, 0);
   const lineRect = spanRect(line, page, 0, line.t.length, 0, 0, false);
-  detail.viewer = createViewer(display, page, lineRect, instRect);
+  detail.viewer = createViewer(display, page, lineRect, instRect, line);
   if (opening) $("#dterm").focus();
   writeHash();
 }
@@ -1669,7 +1767,8 @@ function specimenRow(view, inst, available) {
     row.append(pinTile(box, size, height));
     room -= size.width + PIN_RULE + sizes.gap;
   }
-  const tile = fitInk(inst, height, Math.max(40, room), view.term.letters);
+  const tile = { ...fitInk(inst, height, Math.max(40, room), view.term.letters), inst, labelled: true };
+  row.classList.add("labelled");
   const frame = inkFrame(tile);
   frame.style.width = `${tile.inkWidth}px`;
   frame.style.marginTop = `${box.base - boxOf(tile.height).base}px`;
@@ -1756,13 +1855,13 @@ function stepDetail(step) {
   showDetail(detail.view, index);
 }
 
-function createViewer(display, page, lineRect, instRect) {
+function createViewer(display, page, lineRect, instRect, line) {
   const tools = el("div", "vbar");
   const host = el("div", "viewer");
   host.tabIndex = 0;
   host.setAttribute("role", "img");
   host.setAttribute("aria-label", TEXT.pageScan(page.folio));
-  display.append(tools, host);
+  display.append(tools, host, el("p", "vnote edges-note", TEXT.edgesNote));
   const world = el("div", "world");
   const base = new Image();
   base.alt = "";
@@ -1796,8 +1895,18 @@ function createViewer(display, page, lineRect, instRect) {
     button.addEventListener("click", handler);
     tools.append(button);
   }
+  const edgesToggle = el("button", "word toggle edges-toggle", TEXT.edges);
+  edgesToggle.type = "button";
+  edgesToggle.setAttribute("aria-pressed", String(showEdges));
+  edgesToggle.addEventListener("click", () => setEdges(!showEdges));
+  tools.prepend(edgesToggle);
   host.append(world);
   world.append(lineBox, instBox);
+  const edgeSvg = svgNode("svg", { class: "edges", width: page.w, height: page.h, viewBox: `0 0 ${page.w} ${page.h}`, "aria-hidden": "true" });
+  const labelSize = Math.max(10, Math.round(((line.a ?? 60) + (line.d ?? 40)) * 0.22));
+  drawEdges(edgeSvg, line, 0, line.t.length, (x, y) => [x, y],
+    { size: labelSize, place: (mid, yb, at) => [at(mid, yb, yb)[0], yb + (line.d ?? 40) * 0.7 + labelSize] });
+  world.append(edgeSvg);
 
   const view = { cx: 0, cy: 0, vw: 1 };
   let detailImg = null;
@@ -1812,6 +1921,7 @@ function createViewer(display, page, lineRect, instRect) {
     const border = `${1.25 / k}px`;
     lineBox.style.borderWidth = border;
     instBox.style.borderWidth = border;
+    edgeSvg.style.setProperty("--sw", `${1.3 / k}px`);
     clearTimeout(timer);
     timer = setTimeout(refine, 220);
   }
@@ -2049,6 +2159,7 @@ function applyText() {
 
 async function start() {
   applyText();
+  setEdges(showEdges);
   setupPinned();
   setupKeys();
   setupHeader();

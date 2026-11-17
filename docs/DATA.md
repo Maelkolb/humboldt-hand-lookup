@@ -44,10 +44,13 @@
 | `a`, `d` | how far the ink reaches above and below the baseline |
 | `k` | the zone kind in the edition: `para`, `note`, `table`, `list`, `addition`, `heading`, `fw`, `figure` |
 | `f` | one flag per character: `s` struck, `a` added above the line, `u` unclear, `l` Latin script, `.` none |
-| `q` | one digit per character: the aligner's confidence, 0 (not placed) to 9 |
+| `q` | one digit per character: the aligner's confidence, 0 (not placed) to 9; with littera 1 to 9 for every placed character |
 | `lq` | how well the line's text fits the line on the scan, 0 to 1 |
 | `wy` | per word (split at spaces): the ink's top and bottom, `[top, bottom]`; missing where the ink was too thin |
 | `j` | where the edition marks a word broken at the line's end: index of the line that continues it |
+| `sl` | the slant of the writing as littera estimated it: at height `y`, an edge at `x[i]` lies at `x[i] + sl * (yc - y)`, with `yc = baseline - co` |
+| `co` | where littera's line centre sits above the baseline, in pixels |
+| `xh` | littera's x-height estimate, in pixels |
 
 The text and its markup come from the edition humboldt digital (CC BY-SA 4.0); the index is shared under the same
 licence.

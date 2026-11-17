@@ -13,6 +13,7 @@
   --ruling: #D6D3C9;
   --pencil: #284A8C;
   --pencil-wash: rgba(40, 74, 140, 0.10);
+  --doubt: #9A4A1C;
   --veil: rgba(236, 235, 230, 0.78);
   --trace: color-mix(in srgb, var(--muted) 72%, var(--ground));
   --serif: "EB Garamond", "Garamond", "Iowan Old Style", Georgia, serif;
@@ -35,6 +36,7 @@
     --ruling: #2C2D32;
     --pencil: #9BB3EA;
     --pencil-wash: rgba(155, 179, 234, 0.14);
+  --doubt: #E0A36E;
     --veil: rgba(23, 24, 27, 0.8);
     color-scheme: dark;
   }
@@ -50,6 +52,7 @@
   --ruling: #2C2D32;
   --pencil: #9BB3EA;
   --pencil-wash: rgba(155, 179, 234, 0.14);
+  --doubt: #E0A36E;
   --veil: rgba(23, 24, 27, 0.8);
   color-scheme: dark;
 }
@@ -856,3 +859,17 @@ main:focus { outline: none; }
   .vbar { margin: 0 0 6px; }
   .viewer { flex: none; height: 62vh; }
 }
+
+.edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.edges.clip { overflow: hidden; }
+.edges line { stroke: var(--pencil); stroke-width: 1px; stroke-linecap: round; }
+.edges line.inner { opacity: 0.8; }
+.edges line.outer { stroke-width: 1.5px; }
+.edges text { fill: var(--pencil); font-family: var(--serif); text-anchor: middle; }
+.edges text.doubt { fill: var(--doubt); }
+.viewer .edges line { stroke-width: var(--sw, 1px); }
+.viewer .edges line.outer { stroke-width: calc(var(--sw, 1px) * 1.5); }
+.viewer .edges text { paint-order: stroke; stroke: var(--sheet); stroke-width: calc(var(--sw, 1px) * 3); stroke-linejoin: round; }
+.specimens.labelled { margin-bottom: 24px; }
+.vnote { margin: 8px 0 0; font-size: 14px; line-height: 1.35; color: var(--muted); }
+body:not(.edges-on) .edges, body:not(.edges-on) .edges-note { display: none; }
