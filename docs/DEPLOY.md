@@ -31,7 +31,8 @@ the reading view), build `python tools/build.py single --out humboldt_hand_looku
 inside it: 7.9 MB.
 
 ## A new index
-The index is made by the humboldt-htr pipeline (`scripts/78_lookup_index.py`) from a release of the EHD TEI data.
+The humboldt-htr pipeline matches the lines of a release of the EHD TEI data to the detected lines of the scans. littera and
+aligner-k2 place the characters, and `tools/littera_index.py` turns their placement files into the index.
 
 1. `python tools/build.py data --index <path>/index.json` checks the schema and copies the index into `site/data/`.
 2. Commit and push. GitHub Pages redeploys `site/` by itself (`.github/workflows/pages.yml`). On another server,
